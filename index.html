@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1b2147">
 <link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <title>부릉 마을 주차장</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -572,6 +573,7 @@ bindHold($('#parentBtn'),openParent);
 document.addEventListener('contextmenu',e=>{ if(!(e.target.tagName==='INPUT')) e.preventDefault(); });
 (function(){ const s=$('#segs'); for(let i=0;i<CONFIG.fuelSteps;i++) s.appendChild(document.createElement('i')); $('#miniCar').innerHTML=friendCar(); })();
 openDB().then(d=>{ db=d; return dbLoadAll(); }).then(()=>{}, ()=>{});
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }); }
 sceneStart();
 </script>
 </body>
