@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="부릉 마을">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1b2147">
+<link rel="apple-touch-icon" href="icon.png">
+<title>부릉 마을 주차장</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gothic+A1:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* 해 질 녘 자동차 마을. 어두운 남색 아스팔트 위에 주차선과 노란 포인트. 한 화면에 한 가지 일만. */
+:root{
+  --dusk-1:#1b2147;
+  --dusk-2:#2f3772;
+  --bay:#38407a;
+  --line:#f4efe0;
+  --sun:#ffd23f;
+  --red:#e8453c;
+  --teal:#19b5a5;
+  --ink:#fbf8ee;
+  --ink-dim:#b9bfe6;
+  --display:'Jua','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  --body:'Gothic A1','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--dusk-1);color:var(--ink);font-family:var(--body);
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;overflow:hidden}
+button{font:inherit;color:inherit;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible,input:focus-visible{outline:4px solid var(--sun);outline-offset:3px}
+#app{height:100%;display:flex;flex-direction:column;gap:12px;padding:14px 18px;
+  background:linear-gradient(180deg,var(--dusk-1) 0%,var(--dusk-2) 100%)}
+
+#top{display:flex;align-items:center;gap:14px}
+#fuel{display:flex;align-items:center;gap:10px;flex:1}
+#fuel .lab{font-family:var(--display);font-size:22px;color:var(--sun)}
+#segs{display:flex;gap:6px;flex:1;max-width:420px}
+#segs i{flex:1;height:22px;border-radius:8px;background:rgba(255,255,255,.12);transition:background .4s,transform .4s}
+#segs i.on{background:var(--sun);transform:scaleY(1.15)}
+#parentBtn{position:relative;overflow:hidden;background:rgba(255,255,255,.1);border-radius:14px;padding:10px 16px;font-size:16px;color:var(--ink-dim);min-height:44px}
+.holdfill{position:absolute;left:0;bottom:0;height:4px;width:0;background:var(--sun)}
+.holding .holdfill{width:100%;transition:width 1.2s linear}
+
+#stage{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;overflow:hidden}
+.hero{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.title{font-family:var(--display);font-size:clamp(48px,9vw,96px);line-height:1.05;color:var(--sun);text-wrap:balance}
+.sub{font-size:clamp(18px,2.6vw,26px);color:var(--ink-dim)}
+.bigcar{width:min(420px,70vw);animation:bob 1.6s ease-in-out infinite}
+.car{width:100%;height:auto;display:block}
+@keyframes bob{50%{transform:translateY(-8px)}}
+
+.slots{display:grid;gap:16px;width:min(1000px,100%);align-content:center}
+.slots.mood{grid-template-columns:repeat(4,1fr)}
+.slots.num{grid-template-columns:repeat(3,1fr);max-width:820px}
+@media (max-aspect-ratio:1/1){.slots.mood{grid-template-columns:repeat(2,1fr)}}
+.slot{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:8px;
+  min-height:min(34vh,260px);padding:14px 10px 10px;background:var(--bay);border:5px dashed var(--line);border-radius:22px;color:var(--ink);transition:transform .15s,background .3s}
+.slot:active{transform:scale(.97)}
+.slot svg.face{width:min(110px,18vw)}
+.slot .lab{font-family:var(--display);font-size:clamp(26px,4vw,40px)}
+.slot .big{font-family:var(--display);font-size:clamp(70px,13vw,150px);line-height:1}
+.slot .spot{width:78%;min-height:56px;display:flex;justify-content:center;opacity:0}
+.slot .spot .car{max-height:78px;width:auto}
+.slot.parked{background:#47509a;border-style:solid;border-color:var(--sun)}
+.slot.parked .spot{opacity:1;animation:driveIn .9s cubic-bezier(.2,.8,.3,1) both}
+.slot.shake{animation:shake .4s}
+.slot.hint{animation:pulse 1s ease-in-out infinite}
+.slot.dim{opacity:.45;pointer-events:none}
+@keyframes driveIn{from{transform:translateY(160%) scale(.8);opacity:0}to{transform:none;opacity:1}}
+@keyframes shake{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+@keyframes pulse{50%{border-color:var(--sun);transform:scale(1.04)}}
+.dots{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:170px;min-height:18px}
+.dots span{width:16px;height:16px;border-radius:50%;background:var(--sun);animation:pop .3s both}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+
+.ticket{display:flex;align-items:center;gap:18px;background:var(--sun);color:#2b2300;border-radius:20px;padding:8px 28px}
+.ticket small{font-size:20px;font-weight:700}
+.ticket b{font-family:var(--display);font-size:clamp(64px,11vw,110px);line-height:1}
+
+.garage{position:relative;width:min(560px,92%);aspect-ratio:3/2}
+.garage svg.house{position:absolute;inset:0;width:100%;height:100%}
+.garage .carIn{position:absolute;left:24%;bottom:7%;width:52%;animation:slideIn 2.2s ease-out both}
+@keyframes slideIn{from{transform:translateX(-170%)}to{transform:none}}
+.sleepy .zz{font-family:var(--display);font-size:40px;color:var(--ink-dim);animation:bob 2s infinite}
+
+#bubble{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.1);border-radius:24px;padding:10px 14px}
+#bubble .mini{width:84px;flex:none}
+#bubbleText{margin:0;flex:1;font-family:var(--display);font-size:clamp(22px,3.4vw,34px);line-height:1.3;text-wrap:balance}
+#replay{flex:none;width:56px;height:56px;border-radius:50%;background:var(--sun);display:grid;place-items:center}
+#actions{display:flex;gap:12px;align-items:stretch}
+#actions button{border-radius:24px;font-family:var(--display);min-height:84px;font-size:clamp(22px,3.2vw,32px)}
+#mainBtn{flex:1;background:var(--sun);color:#2b2300;padding:0 20px;box-shadow:0 6px 0 #c79a00}
+#mainBtn:active{transform:translateY(4px);box-shadow:0 2px 0 #c79a00}
+#mainBtn[hidden]{display:none}
+.side{background:rgba(255,255,255,.12);padding:0 18px;min-width:130px}
+#app.calm .side{display:none}
+#app.calm #actions{justify-content:center}
+#app.calm #mainBtn{max-width:520px}
+
+#overlay{position:fixed;inset:0;background:rgba(18,22,52,.97);display:none;flex-direction:column;align-items:center;gap:20px;padding:24px;z-index:10;overflow:auto;text-align:center}
+#overlay.show{display:flex}
+#overlay>*{margin-block:auto;flex:none}
+#overlay>.panel{margin-block:0 auto}
+.balloon{width:min(300px,60vw);aspect-ratio:1;border-radius:50%;background:var(--sun);display:grid;place-items:center;animation:breathe 8s ease-in-out infinite}
+.balloon svg{width:60%}
+@keyframes breathe{0%,100%{transform:scale(.62)}50%{transform:scale(1)}}
+.ovtitle{font-family:var(--display);font-size:clamp(34px,6vw,60px);margin:0;color:var(--sun);text-wrap:balance}
+.ovtext{font-size:clamp(20px,3vw,28px);margin:0;max-width:640px;line-height:1.5}
+.ovbtns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.ovbtns button{font-family:var(--display);font-size:28px;min-height:80px;padding:0 30px;border-radius:24px;background:var(--sun);color:#2b2300}
+.ovbtns button.ghost{background:rgba(255,255,255,.14);color:var(--ink)}
+.panel{width:min(720px,100%);text-align:left;display:flex;flex-direction:column;gap:16px}
+.panel h2{font-family:var(--display);font-size:32px;margin:0;color:var(--sun)}
+.panel h3{font-size:18px;margin:0 0 6px;color:var(--ink-dim)}
+.panel p,.panel li{font-size:17px;line-height:1.6;margin:0}
+.panel ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.panel .card{background:rgba(255,255,255,.08);border-radius:16px;padding:14px 16px}
+.panel .btnrow{display:flex;gap:10px;flex-wrap:wrap}
+.panel .btnrow button,.panel button.sm{position:relative;overflow:hidden;font-size:17px;padding:12px 18px;min-height:48px;border-radius:14px;background:rgba(255,255,255,.14)}
+.panel button.go{background:var(--sun);color:#2b2300;font-weight:700}
+.panel button.recording{background:var(--red)}
+.panel table{width:100%;border-collapse:collapse;font-size:16px;font-variant-numeric:tabular-nums}
+.panel td{padding:5px 8px 5px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+.panel label{display:flex;flex-direction:column;gap:6px;font-size:18px}
+.panel input{font:inherit;font-size:22px;padding:12px 14px;border-radius:12px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:var(--ink);-webkit-user-select:text;user-select:text}
+.rec{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+.rec .t{flex:1 1 260px;font-size:18px;line-height:1.4}
+.rec .st{font-size:14px;color:var(--ink-dim);min-width:52px}
+.rec .st.ok{color:var(--sun)}
+.msg{color:var(--sun);font-size:16px;min-height:22px;margin:0}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app" class="calm">
+  <div id="top">
+    <div id="fuel"><span class="lab">연료</span><div id="segs" role="img" aria-label="오늘의 연료"></div></div>
+    <button id="parentBtn" aria-label="부모 메뉴, 길게 누르기">부모<span class="holdfill"></span></button>
+  </div>
+  <main id="stage" aria-live="polite"></main>
+  <div id="bubble">
+    <div class="mini" id="miniCar"></div>
+    <p id="bubbleText"></p>
+    <button id="replay" aria-label="다시 듣기">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2b2300" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="#2b2300"/><path d="M16.5 8.5a5 5 0 010 7"/><path d="M19 6a8.5 8.5 0 010 12"/></svg>
+    </button>
+  </div>
+  <div id="actions">
+    <button id="restBtn" class="side">힘들어요</button>
+    <button id="mainBtn" hidden></button>
+    <button id="helpBtn" class="side">도와주세요</button>
+  </div>
+</div>
+<div id="overlay" role="dialog" aria-modal="true"></div>
+
+<script>
+/* ---------- 설정: 이름과 층수는 첫 실행 때 입력받아 이 기기에만 저장 ---------- */
+const CONFIG = { child:'', floor:'', friend:'부릉이', fuelSteps:6 };
+
+/* ---------- 저장(이 기기에만) ---------- */
+function loadLS(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
+function saveLS(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function todayKey(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function upd(fn){ const logs=loadLS('bureung.log',{}); const k=todayKey(); const e=logs[k]||{mood:null,rest:0,help:0,done:false}; fn(e); logs[k]=e; saveLS('bureung.log',logs); }
+CONFIG.child = loadLS('bureung.name','') || '';
+CONFIG.floor = loadLS('bureung.floor','') || '';
+
+/* ---------- 대사 목록: {name}, {floor}는 입력값으로 바뀜 ---------- */
+const LINES = {
+  start:'안녕, 강아지 {name}! 준비되면 출발을 눌러 줘.',
+  greet:'안녕, 강아지 {name}! 오늘 기분은 어때? 기분에 맞는 칸에 주차해 줘.',
+  mood_happy:'기뻐요 칸에 주차했네! 기분이 좋구나. 뭐가 제일 기뻤어?',
+  mood_sad:'속상해요 칸에 주차했구나. 속상한 마음도 괜찮아. 말하고 싶으면 엄마 아빠한테 얘기해 줘.',
+  mood_sleepy:'졸려요 칸에 주차했구나. 오늘 하루 열심히 놀았구나.',
+  mood_angry:'화났어요 칸에 주차했구나. 화가 나는 마음도 괜찮아. 천천히 숨을 쉬어 볼까?',
+  n1:'1번',n2:'2번',n3:'3번',n4:'4번',n5:'5번',n6:'6번',n7:'7번',n8:'8번',n9:'9번',n10:'10번',
+  tail_park:'칸에 주차해 줄래?',
+  ok_yes:'맞아요!',
+  wrong:'음, 다시 한 번 찾아볼까?',
+  home_prompt:'마지막 칸은 우리 집이야! 우리 집은 {floor}층. {floor}번 칸에 주차해 줄래?',
+  home_ok:'맞아요! 우리 집 {floor}층!',
+  garage:'오늘도 부릉 마을에 와 줘서 고마워, 강아지 {name}! 이제 차고에서 푹 쉬자. 내일 또 만나!',
+  finish:'잘 자, 강아지 {name}! 내일 또 만나.',
+  rest_open:'힘들었구나. 잠깐 쉬어 가자. 코로 숨을 크게 들이마셔요.',
+  rest_in:'코로 숨을 크게 들이마셔요',
+  rest_out:'후, 입으로 천천히 내쉬어요',
+  rest_done:'잘 쉬었어. 준비되면 다시 출발하자.',
+  help:'도와주세요, 하고 크게 말해 볼까? 엄마 아빠가 도와줄 거야.',
+  go:'다시 출발!',
+  helped:'좋아, 다시 해 보자!'
+};
+const textOf = id => (LINES[id]||'').replace(/\{name\}/g,CONFIG.child).replace(/\{floor\}/g,CONFIG.floor);
+const REC_GROUPS = [
+  ['인사와 기분',['start','greet','mood_happy','mood_sad','mood_sleepy','mood_angry']],
+  ['번호 주차 (숫자는 "3번"처럼 말해 주세요)',['n1','n2','n3','n4','n5','n6','n7','n8','n9','n10','tail_park','ok_yes','wrong','home_prompt','home_ok']],
+  ['쉬어가기와 도움',['rest_open','rest_in','rest_out','rest_done','help','go','helped']],
+  ['마무리',['garage','finish']]
+];
+const ALL_IDS = REC_GROUPS.flatMap(g=>g[1]);
+
+/* ---------- 부모 목소리 저장소 (IndexedDB) ---------- */
+const clipURL = {};
+let db = null;
+function openDB(){ return new Promise(res=>{ try{ const r=indexedDB.open('bureung',1); r.onupgradeneeded=()=>r.result.createObjectStore('clips'); r.onsuccess=()=>res(r.result); r.onerror=()=>res(null); }catch(e){ res(null); } }); }
+function dbPut(id,blob){ return new Promise(res=>{ if(!db) return res(false); try{ const tx=db.transaction('clips','readwrite'); tx.objectStore('clips').put(blob,id); tx.oncomplete=()=>res(true); tx.onerror=()=>res(false); }catch(e){ res(false); } }); }
+function dbDel(id){ return new Promise(res=>{ if(!db) return res(false); try{ const tx=db.transaction('clips','readwrite'); tx.objectStore('clips').delete(id); tx.oncomplete=()=>res(true); tx.onerror=()=>res(false); }catch(e){ res(false); } }); }
+function dbLoadAll(){ return new Promise(res=>{ if(!db) return res(); try{ const tx=db.transaction('clips','readonly'); const rq=tx.objectStore('clips').openCursor(); rq.onsuccess=()=>{ const c=rq.result; if(c){ setClip(c.key,c.value); c.continue(); } }; tx.oncomplete=()=>res(); tx.onerror=()=>res(); }catch(e){ res(); } }); }
+function setClip(id,blob){ if(clipURL[id]) try{ URL.revokeObjectURL(clipURL[id]); }catch(e){} clipURL[id]=URL.createObjectURL(blob); }
+function dropClip(id){ if(clipURL[id]){ try{ URL.revokeObjectURL(clipURL[id]); }catch(e){} delete clipURL[id]; } }
+
+/* ---------- 소리: 녹음된 부모 목소리 우선, 없으면 기기 음성 ---------- */
+let soundOn = loadLS('bureung.sound', true);
+let voice = null, ac = null, lastIds = ['start'];
+const player = new Audio(); let playToken = 0;
+function stopAudio(){ playToken++; try{ player.pause(); }catch(e){} try{ if('speechSynthesis' in window) speechSynthesis.cancel(); }catch(e){} }
+function playSeq(urls){ const tok=++playToken; let i=0; const next=()=>{ if(tok!==playToken||i>=urls.length) return; player.src=urls[i++]; player.onended=next; const p=player.play(); if(p&&p.catch) p.catch(()=>{}); }; next(); }
+function pickVoice(){
+  if(!('speechSynthesis' in window)) return;
+  const ko=speechSynthesis.getVoices().filter(v=>v.lang && /^ko/i.test(v.lang.replace('_','-')));
+  const score=v=>(/premium|enhanced|고급|향상/i.test(v.name)?4:0)+(/google/i.test(v.name)?3:0)+(/yuna|유나|siri/i.test(v.name)?2:0)+(v.localService===false?1:0);
+  voice = ko.sort((a,b)=>score(b)-score(a))[0] || null;
+}
+if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+let ttsStatus = ('speechSynthesis' in window) ? '아직 시도 안 함' : '이 화면은 음성 합성을 지원하지 않음';
+function speak(text){
+  if(!soundOn) return;
+  if(!('speechSynthesis' in window)){ ttsStatus='이 화면은 음성 합성을 지원하지 않음'; return; }
+  try{
+    const synth=speechSynthesis; const busy=synth.speaking||synth.pending;
+    if(busy) synth.cancel(); if(synth.paused) synth.resume();
+    const u=new SpeechSynthesisUtterance(text.replace(/[~]/g,''));
+    u.lang='ko-KR'; if(voice) u.voice=voice; u.rate=.9; u.pitch=1.05; u.volume=1;
+    u.onstart=()=>{ ttsStatus='재생됨'; };
+    u.onerror=e=>{ ttsStatus='오류: '+((e&&e.error)||'알 수 없음'); };
+    setTimeout(()=>{ try{ synth.speak(u); }catch(e){ ttsStatus='오류: '+e.message; } }, busy?150:0);
+  }catch(e){ ttsStatus='오류: '+e.message; }
+}
+function playIds(ids){
+  if(!soundOn) return;
+  stopAudio();
+  if(ids.every(id=>clipURL[id])) playSeq(ids.map(id=>clipURL[id]));
+  else speak(ids.map(textOf).join(' '));
+}
+function sayIds(ids){ lastIds=ids; document.getElementById('bubbleText').textContent=ids.map(textOf).join(' '); playIds(ids); }
+function showIds(ids){ lastIds=ids; document.getElementById('bubbleText').textContent=ids.map(textOf).join(' '); }
+/* 첫 터치에서 오디오와 음성을 깨워 둠 (iOS 대응) */
+document.addEventListener('pointerdown',function unlock(){
+  document.removeEventListener('pointerdown',unlock,true);
+  try{ player.src='data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=='; const p=player.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){}
+  try{ if('speechSynthesis' in window){ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); } }catch(e){}
+},true);
+
+function beep(freq,dur,type,vol,delay){
+  if(!soundOn) return;
+  try{
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    const t=ac.currentTime+(delay||0), o=ac.createOscillator(), g=ac.createGain();
+    o.type=type||'sine'; o.frequency.value=freq; g.gain.setValueAtTime(vol||.15,t); g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+dur);
+  }catch(e){}
+}
+const ding = ()=>{ beep(660,.12,'sine',.15,0); beep(880,.2,'sine',.15,.1); };
+const nope = ()=> beep(220,.25,'triangle',.12,0);
+function vroom(){
+  if(!soundOn) return;
+  try{
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    const t=ac.currentTime, o=ac.createOscillator(), g=ac.createGain();
+    o.type='sawtooth'; o.frequency.setValueAtTime(70,t); o.frequency.linearRampToValueAtTime(200,t+.6);
+    g.gain.setValueAtTime(.07,t); g.gain.linearRampToValueAtTime(0,t+.65);
+    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+.7);
+  }catch(e){}
+}
+
+/* ---------- 그림 ---------- */
+function carSVG(o){
+  const body=o.body||'#e8453c';
+  const dog = o.dog ? `
+    <ellipse cx="94" cy="46" rx="7" ry="12" fill="#6b3f1f" transform="rotate(12 94 46)"/>
+    <ellipse cx="130" cy="46" rx="7" ry="12" fill="#6b3f1f" transform="rotate(-12 130 46)"/>
+    <circle cx="112" cy="46" r="14" fill="#f2c48d"/>
+    <circle cx="106" cy="43" r="2.2" fill="#2b1a0a"/><circle cx="118" cy="43" r="2.2" fill="#2b1a0a"/>
+    <ellipse cx="112" cy="50" rx="3.4" ry="2.6" fill="#2b1a0a"/>
+    <path d="M110 53 Q112 58 114 53" fill="#ff8fa3"/>` : '';
+  const eyes = o.eyes ? `
+    <circle cx="98" cy="46" r="11" fill="#fff"/><circle cx="128" cy="46" r="11" fill="#fff"/>
+    <circle cx="100" cy="48" r="5" fill="#1b1b2a"/><circle cx="130" cy="48" r="5" fill="#1b1b2a"/>
+    <path d="M90 82 Q113 94 136 82" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/>` : '';
+  const stripe = o.dog ? '<path d="M44 78 H190" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".9"/>' : '';
+  return `<svg viewBox="0 0 220 124" class="car" aria-hidden="true">
+    <ellipse cx="111" cy="112" rx="88" ry="7" fill="rgba(0,0,0,.3)"/>
+    <path d="M14 86 C14 72 26 66 48 64 L70 38 C76 30 86 26 96 26 L134 26 C146 26 154 32 160 40 L176 64 C198 66 208 72 208 86 L208 92 C208 97 204 100 199 100 L23 100 C18 100 14 97 14 92 Z" fill="${body}"/>
+    <path d="M80 38 C84 34 90 32 98 32 L132 32 C140 32 146 36 150 42 L160 60 L70 60 Z" fill="#cfe8ff"/>
+    ${dog}${eyes}${stripe}
+    <ellipse cx="203" cy="80" rx="6" ry="5" fill="#ffe27a"/><ellipse cx="19" cy="80" rx="5" ry="5" fill="#ff8a80"/>
+    <circle cx="58" cy="100" r="17" fill="#15151f"/><circle cx="58" cy="100" r="8" fill="#c9ced6"/>
+    <circle cx="166" cy="100" r="17" fill="#15151f"/><circle cx="166" cy="100" r="8" fill="#c9ced6"/>
+  </svg>`;
+}
+const dogCar = ()=>carSVG({body:'#e8453c',dog:true});
+const friendCar = ()=>carSVG({body:'#19b5a5',eyes:true});
+const FACES = {
+  happy:`<svg class="face" viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="#ffd23f"/><path d="M22 36 Q28 27 34 36" stroke="#3a2a00" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M46 36 Q52 27 58 36" stroke="#3a2a00" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M24 47 Q40 68 56 47 Z" fill="#7a2a1a"/></svg>`,
+  sad:`<svg class="face" viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="#ffd23f"/><circle cx="30" cy="40" r="3.6" fill="#3a2a00"/><circle cx="50" cy="40" r="3.6" fill="#3a2a00"/><path d="M22 28 L35 33 M58 28 L45 33" stroke="#3a2a00" stroke-width="3.5" stroke-linecap="round"/><path d="M28 58 Q40 47 52 58" stroke="#3a2a00" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M30 46 Q26 54 30 57 Q34 54 30 46Z" fill="#6fc3ff"/></svg>`,
+  sleepy:`<svg class="face" viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="#ffd23f"/><path d="M23 40 H37 M43 40 H57" stroke="#3a2a00" stroke-width="4" stroke-linecap="round"/><circle cx="40" cy="55" r="4.5" fill="#7a2a1a"/><text x="54" y="24" font-size="18" font-family="Jua,sans-serif" fill="#3a2a00">z</text></svg>`,
+  angry:`<svg class="face" viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="#ff7a59"/><circle cx="30" cy="43" r="3.6" fill="#3a2a00"/><circle cx="50" cy="43" r="3.6" fill="#3a2a00"/><path d="M21 31 L36 38 M59 31 L44 38" stroke="#3a2a00" stroke-width="4" stroke-linecap="round"/><path d="M29 58 Q40 50 51 58" stroke="#3a2a00" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`
+};
+const DOGFACE = `<svg viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="22" cy="42" rx="12" ry="24" fill="#6b3f1f" transform="rotate(14 22 42)"/><ellipse cx="78" cy="42" rx="12" ry="24" fill="#6b3f1f" transform="rotate(-14 78 42)"/><circle cx="50" cy="52" r="32" fill="#f2c48d"/><circle cx="39" cy="46" r="4" fill="#2b1a0a"/><circle cx="61" cy="46" r="4" fill="#2b1a0a"/><ellipse cx="50" cy="60" rx="7" ry="5" fill="#2b1a0a"/><path d="M44 68 Q50 78 56 68" fill="#ff8fa3"/></svg>`;
+const GARAGE_SVG = `<svg class="house" viewBox="0 0 300 200" aria-hidden="true"><polygon points="20,70 150,10 280,70" fill="#e8453c"/><rect x="30" y="70" width="240" height="120" fill="#4a5399"/><rect x="62" y="90" width="176" height="100" fill="#171b3d"/><g stroke="#2f3772" stroke-width="3"><path d="M62 108H238M62 126H238"/></g><rect x="130" y="34" width="40" height="26" rx="4" fill="#ffd23f"/></svg>`;
+
+/* ---------- 상태 ---------- */
+const MOODS = [
+  {k:'happy', t:'기뻐요'},
+  {k:'sad',   t:'속상해요'},
+  {k:'sleepy',t:'졸려요'},
+  {k:'angry', t:'화났어요'}
+];
+let st = { scene:'start', round:0, rounds:[], wrong:0, fuel:0, locked:false };
+const $ = s=>document.querySelector(s);
+const stage=$('#stage'), app=$('#app'), mainBtn=$('#mainBtn'), overlay=$('#overlay');
+let timers=[];
+function later(fn,ms){ const t=setTimeout(fn,ms); timers.push(t); return t; }
+function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function setFuel(n){ st.fuel=n; document.querySelectorAll('#segs i').forEach((el,i)=>el.classList.toggle('on',i<n)); }
+function setMain(label,fn){ if(!label){ mainBtn.hidden=true; mainBtn.onclick=null; return; } mainBtn.hidden=false; mainBtn.textContent=label; mainBtn.onclick=fn; }
+function setRun(on){ app.classList.toggle('calm',!on); }
+
+/* ---------- 장면 ---------- */
+function sceneStart(){
+  clearTimers(); st.scene='start'; setRun(false); setFuel(0); st.locked=false;
+  if(!CONFIG.child || !CONFIG.floor){
+    stage.innerHTML = `<div class="hero"><div class="title">부릉 마을<br>주차장</div><div class="bigcar">${dogCar()}</div></div>`;
+    setMain(null); $('#bubbleText').textContent='처음 한 번, 부모님이 설정을 해 주세요.'; openSetup(true); return;
+  }
+  const done = loadLS('bureung.done',null)===todayKey();
+  if(done){ return sceneClosed(); }
+  stage.innerHTML = `<div class="hero"><div class="title">부릉 마을<br>주차장</div><div class="sub">강아지 ${CONFIG.child}의 하루 10분</div><div class="bigcar">${dogCar()}</div></div>`;
+  showIds(['start']);
+  setMain('출발! 부릉부릉', ()=>{ vroom(); sceneMood(); });
+}
+function sceneClosed(){
+  st.scene='closed'; setRun(false); setFuel(CONFIG.fuelSteps);
+  stage.innerHTML = `<div class="hero sleepy"><div class="title">오늘은<br>여기까지</div><div class="sub">부릉 마을은 문을 닫았어요</div><div class="garage">${GARAGE_SVG}<div class="carIn" style="animation:none">${dogCar()}</div></div><div class="zz">zZ</div></div>`;
+  showIds(['finish']); setMain(null);
+}
+function sceneMood(){
+  clearTimers(); st.scene='mood'; setRun(true); setMain(null);
+  stage.innerHTML = `<div class="slots mood">${MOODS.map(m=>`<button class="slot" data-mood="${m.k}" aria-label="${m.t}">${FACES[m.k]}<span class="lab">${m.t}</span><span class="spot">${dogCar()}</span></button>`).join('')}</div>`;
+  sayIds(['greet']);
+}
+function pickMood(btn){
+  if(st.locked) return; st.locked=true;
+  const k=btn.dataset.mood;
+  btn.classList.add('parked');
+  document.querySelectorAll('.slot').forEach(s=>{ if(s!==btn) s.classList.add('dim'); });
+  vroom(); later(ding,500);
+  upd(e=>{ e.mood=k; });
+  setFuel(1); sayIds(['mood_'+k]);
+  later(()=>setMain('부릉 가자!', ()=>sceneNumber(0)), 900);
+}
+function buildRounds(){
+  const fl=Number(CONFIG.floor);
+  const base=[1,2,3,4,5,6,7,8,9,10].filter(x=>x!==fl);
+  const pool=shuffle(base).slice(0,3);
+  const r=pool.map(n=>({n, opts:shuffle([n,...shuffle(base.filter(x=>x!==n)).slice(0,2)])}));
+  const cand=shuffle([12,7,fl+10,fl-10].filter(x=>x>=1&&x<=99&&x!==fl&&x!==0));
+  r.push({n:fl, home:true, opts:shuffle([fl,...cand.slice(0,2)])});
+  return r;
+}
+function sceneNumber(i){
+  clearTimers(); st.scene='number'; st.locked=false; st.wrong=0; setMain(null);
+  if(i===0) st.rounds=buildRounds();
+  st.round=i; const r=st.rounds[i];
+  stage.innerHTML = `<div class="ticket"><small>번호표</small><b>${r.n}</b></div>
+    <div class="slots num">${r.opts.map(n=>`<button class="slot" data-n="${n}" aria-label="${n}번 칸"><span class="big">${n}</span><span class="dots"></span><span class="spot">${dogCar()}</span></button>`).join('')}</div>`;
+  sayIds(r.home ? ['home_prompt'] : ['n'+r.n,'tail_park']);
+}
+function pickNumber(btn){
+  if(st.locked) return;
+  const r=st.rounds[st.round], n=Number(btn.dataset.n);
+  if(n!==r.n){
+    nope(); btn.classList.add('shake'); later(()=>btn.classList.remove('shake'),450);
+    st.wrong++; sayIds(['wrong']);
+    if(st.wrong>=2){ document.querySelector(`.slot[data-n="${r.n}"]`).classList.add('hint'); }
+    return;
+  }
+  st.locked=true;
+  document.querySelectorAll('.slot').forEach(s=>s.classList.remove('hint'));
+  btn.classList.add('parked');
+  document.querySelectorAll('.slot').forEach(s=>{ if(s!==btn) s.classList.add('dim'); });
+  vroom(); later(ding,500);
+  if(!r.home){
+    const dots=btn.querySelector('.dots');
+    for(let k=0;k<n;k++){ later(()=>{ const d=document.createElement('span'); dots.appendChild(d); beep(500+k*40,.08,'sine',.08,0); }, 700+k*260); }
+  }
+  setFuel(1+st.round+1);
+  sayIds(r.home ? ['home_ok'] : ['ok_yes','n'+n]);
+  const wait = r.home ? 1200 : 900+n*260;
+  const last = st.round===st.rounds.length-1;
+  later(()=>setMain(last?'차고로 가자!':'다음 칸으로', ()=> last ? sceneGarage() : sceneNumber(st.round+1)), wait);
+}
+function sceneGarage(){
+  clearTimers(); st.scene='garage'; setMain(null);
+  stage.innerHTML = `<div class="garage">${GARAGE_SVG}<div class="carIn">${dogCar()}</div></div>`;
+  vroom(); sayIds(['garage']);
+  later(()=>setMain(`안녕, ${CONFIG.friend}!`, finishDay), 2400);
+}
+function finishDay(){
+  setFuel(CONFIG.fuelSteps); ding();
+  saveLS('bureung.done', todayKey()); upd(e=>{ e.done=true; });
+  sceneClosed(); sayIds(['finish']);
+}
+
+/* ---------- 오버레이 ---------- */
+let breathTimer=null;
+function closeOverlay(){ overlay.classList.remove('show'); overlay.innerHTML=''; if(breathTimer){ clearInterval(breathTimer); breathTimer=null; } }
+function openRest(){
+  upd(e=>{ e.rest++; });
+  overlay.innerHTML = `<h2 class="ovtitle">정비소에서 쉬어 가요</h2>
+    <div class="balloon">${DOGFACE}</div>
+    <p class="ovtext" id="breathText">${textOf('rest_open')}</p>
+    <div class="ovbtns"><button id="goBtn">다시 출발!</button><button class="ghost" id="moreBtn">더 쉴래요</button></div>`;
+  overlay.classList.add('show');
+  playIds(['rest_open']);
+  let tick=0; const txt=$('#breathText');
+  breathTimer=setInterval(()=>{
+    tick++;
+    if(tick>=6){ clearInterval(breathTimer); breathTimer=null; txt.textContent=textOf('rest_done'); playIds(['rest_done']); return; }
+    const id = tick%2===0 ? 'rest_in' : 'rest_out';
+    txt.textContent=textOf(id); playIds([id]);
+  },4000);
+  $('#goBtn').onclick=()=>{ closeOverlay(); playIds(['go']); };
+  $('#moreBtn').onclick=()=>{ closeOverlay(); openRest(); };
+}
+function openHelp(){
+  upd(e=>{ e.help++; });
+  overlay.innerHTML = `<h2 class="ovtitle">엄마, 아빠, 도와주세요!</h2>
+    <div class="balloon" style="animation:none;transform:scale(.85)">${DOGFACE}</div>
+    <p class="ovtext">힘들 때는 이렇게 말해도 돼요.<br>“도와주세요” 하고 크게 말해 볼까?</p>
+    <div class="ovbtns"><button id="helpedBtn">도와줬어요</button></div>`;
+  overlay.classList.add('show');
+  playIds(['help']);
+  $('#helpedBtn').onclick=()=>{ closeOverlay(); playIds(['helped']); };
+}
+function bindHold(el,fn){
+  let t=null;
+  const start=e=>{ e.preventDefault(); el.classList.add('holding'); t=setTimeout(()=>{ el.classList.remove('holding'); fn(); },1200); };
+  const stop=()=>{ clearTimeout(t); el.classList.remove('holding'); };
+  el.addEventListener('pointerdown',start);
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>el.addEventListener(ev,stop));
+  el.addEventListener('contextmenu',e=>e.preventDefault());
+  el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fn(); } });
+}
+function fmtDate(k){ const p=k.split('-'); return Number(p[1])+'/'+Number(p[2]); }
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function openSetup(first){
+  overlay.innerHTML = `<div class="panel">
+    <h2>${first?'처음 설정':'이름·층 바꾸기'}</h2>
+    <label>아이 이름 (애칭)<input id="nameIn" maxlength="8" value="${esc(CONFIG.child)}" autocomplete="off"></label>
+    <label>우리 집 층 (1~99)<input id="floorIn" inputmode="numeric" maxlength="2" value="${esc(CONFIG.floor)}" autocomplete="off"></label>
+    <p style="color:var(--ink-dim);font-size:15px">입력한 내용은 이 기기에만 저장되고 어디로도 전송되지 않아요. 이름을 바꾸면 이미 녹음한 목소리 속 이름은 그대로 남아요.</p>
+    <p class="msg" id="setupMsg"></p>
+    <div class="btnrow"><button class="go" id="saveSetup">저장</button>${first?'':'<button id="cancelSetup">취소</button>'}</div></div>`;
+  overlay.classList.add('show');
+  $('#saveSetup').onclick=()=>{
+    const nm=$('#nameIn').value.trim(), fl=parseInt($('#floorIn').value,10);
+    if(!nm){ $('#setupMsg').textContent='이름을 입력해 주세요.'; return; }
+    if(!(fl>=1&&fl<=99)){ $('#setupMsg').textContent='층은 1에서 99 사이 숫자로 입력해 주세요.'; return; }
+    CONFIG.child=nm; CONFIG.floor=String(fl); saveLS('bureung.name',nm); saveLS('bureung.floor',String(fl));
+    closeOverlay(); sceneStart();
+  };
+  if(!first) $('#cancelSetup').onclick=()=>openParent();
+}
+
+/* ---------- 부모 목소리 녹음 ---------- */
+let recSession=null;
+function recCount(){ return ALL_IDS.filter(id=>clipURL[id]).length; }
+function openRecorder(msg){
+  const rows = REC_GROUPS.map(([title,ids])=>`<div class="card"><h3>${title}</h3>${ids.map(id=>`
+    <div class="rec" data-id="${id}"><div class="t">${esc(textOf(id))}</div>
+      <span class="st ${clipURL[id]?'ok':''}">${clipURL[id]?'녹음됨':'없음'}</span>
+      <button class="sm rbtn ${recSession&&recSession.id===id?'recording':''}" data-act="rec">${recSession&&recSession.id===id?'■ 멈춤':'● 녹음'}</button>
+      <button class="sm" data-act="play" ${clipURL[id]?'':'disabled'}>▶ 듣기</button>
+      <button class="sm" data-act="del" ${clipURL[id]?'':'disabled'}>지우기</button></div>`).join('')}</div>`).join('');
+  const keep = overlay.scrollTop;
+  overlay.innerHTML = `<div class="panel">
+    <h2>부모 목소리 녹음</h2>
+    <p>${recCount()} / ${ALL_IDS.length} 녹음됨. 녹음한 줄은 기계 음성 대신 부모님 목소리로 나오고, 없는 줄은 기계 음성이 대신해요. 한 줄이라도 빠지면 그 장면은 통째로 기계 음성이 나오니, 같은 장면의 줄은 함께 녹음해 주세요.</p>
+    <p>조용한 곳에서 평소 아이에게 말하듯 한 줄씩 녹음해 주세요. 한 줄은 최대 15초예요. 녹음은 이 기기 안에만 저장돼요.</p>
+    <p class="msg" id="recMsg">${esc(msg||'')}</p>
+    ${rows}
+    <div class="btnrow"><button class="go" id="recDone">끝내기</button></div></div>`;
+  overlay.classList.add('show'); overlay.scrollTop = keep;
+  $('#recDone').onclick=()=>{ stopRecNow(); openParent(); };
+  overlay.querySelectorAll('.rec button').forEach(b=>b.onclick=()=>{
+    const id=b.closest('.rec').dataset.id, act=b.dataset.act;
+    if(act==='rec') toggleRec(id);
+    else if(act==='play'){ stopAudio(); if(clipURL[id]) playSeq([clipURL[id]]); }
+    else if(act==='del'){ dbDel(id).then(()=>{ dropClip(id); openRecorder(); }); }
+  });
+}
+function stopRecNow(){ if(recSession){ try{ recSession.mr.stop(); }catch(e){} } }
+async function toggleRec(id){
+  if(recSession){ const same=recSession.id===id; stopRecNow(); if(same) return; return; }
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder){ openRecorder('이 브라우저에서는 녹음을 쓸 수 없어요. 아이패드 Safari나 크롬에서 열어 주세요.'); return; }
+  stopAudio();
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    const mt=['audio/mp4','audio/webm;codecs=opus','audio/webm'].find(t=>MediaRecorder.isTypeSupported(t))||'';
+    const mr=new MediaRecorder(stream, mt?{mimeType:mt}:undefined); const chunks=[]; let to=null;
+    mr.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
+    mr.onstop=async()=>{
+      clearTimeout(to); stream.getTracks().forEach(t=>t.stop()); recSession=null;
+      const blob=new Blob(chunks,{type:mr.mimeType||mt||'audio/mp4'});
+      if(blob.size<800){ openRecorder('녹음이 너무 짧아요. 다시 해 주세요.'); return; }
+      const ok=await dbPut(id,blob); setClip(id,blob);
+      openRecorder(ok?'저장했어요.':'저장 공간을 쓸 수 없어서, 이 화면을 닫으면 녹음이 사라져요.');
+    };
+    recSession={mr,id}; mr.start(); to=setTimeout(()=>{ try{ mr.stop(); }catch(e){} },15000);
+    openRecorder('녹음 중이에요. 다 말하면 ■ 멈춤을 눌러 주세요.');
+  }catch(e){ recSession=null; openRecorder('마이크를 쓸 수 없어요. 브라우저에서 마이크를 허용해 주세요.'); }
+}
+
+function openParent(){
+  const logs=loadLS('bureung.log',{}); const labels={happy:'기뻐요',sad:'속상해요',sleepy:'졸려요',angry:'화났어요'};
+  const keys=Object.keys(logs).sort().reverse().slice(0,7);
+  const rows = keys.length ? keys.map(k=>{ const e=logs[k]; return `<tr><td>${fmtDate(k)}</td><td>기분 ${e.mood?labels[e.mood]:'-'}</td><td>쉬어가기 ${e.rest}회</td><td>도와주세요 ${e.help}회</td><td>${e.done?'완료':'진행 중'}</td></tr>`; }).join('') : '<tr><td>아직 기록이 없어요</td></tr>';
+  overlay.innerHTML = `<div class="panel">
+    <h2>부모 메뉴</h2>
+    <div class="card"><h3>함께 이야기해 보세요</h3><ul>
+      <li>기분 주차: 아이가 말한 이유를 그대로 따라 말해 주세요. 감정 이름이 늘어요.</li>
+      <li>번호 주차: 점을 같이 세고, 집 현관이나 자동차 번호판에서 같은 숫자를 찾아보세요.</li>
+      <li>쉬어가기: 쉬는 동안은 말을 걸지 않고, 돌아오면 무엇이 힘들었는지 물어봐 주세요.</li></ul></div>
+    <div class="card"><h3>최근 7일 기록</h3><table>${rows}</table></div>
+    <div class="card"><h3>음성</h3><p id="ttsInfo"></p>
+      <div class="btnrow" style="margin-top:10px"><button class="go" id="recBtn">부모 목소리 녹음 (${recCount()}/${ALL_IDS.length})</button><button id="ttsTest">기계 음성 테스트</button></div></div>
+    <p style="color:var(--ink-dim);font-size:15px">기록과 녹음은 이 기기의 브라우저에만 저장되고 어디로도 전송되지 않아요. 홈 화면에 추가해서 쓰는 경우, 녹음도 홈 화면 앱 안에서 해 주세요.</p>
+    <div class="btnrow">
+      <button id="sndBtn">소리 ${soundOn?'끄기':'켜기'}</button>
+      <button id="nameBtn">이름·층 바꾸기</button>
+      <button id="againBtn" data-hold>한 번 더 하기 (길게 누르기)<span class="holdfill"></span></button>
+      <button id="closeBtn">닫기</button>
+    </div></div>`;
+  overlay.classList.add('show');
+  const showTts=()=>{ pickVoice(); const n='speechSynthesis' in window ? speechSynthesis.getVoices().length : 0; $('#ttsInfo').textContent='기기 음성: 목소리 '+n+'개, 한국어 '+(voice?voice.name:'없음')+' / 상태: '+ttsStatus; };
+  showTts();
+  $('#recBtn').onclick=()=>openRecorder();
+  $('#ttsTest').onclick=()=>{ speak('안녕, 강아지 '+CONFIG.child+'! 소리가 잘 들리나요?'); setTimeout(showTts,1500); };
+  $('#sndBtn').onclick=()=>{ soundOn=!soundOn; saveLS('bureung.sound',soundOn); if(!soundOn) stopAudio(); $('#sndBtn').textContent='소리 '+(soundOn?'끄기':'켜기'); };
+  $('#nameBtn').onclick=()=>openSetup(false);
+  bindHold($('#againBtn'),()=>{ saveLS('bureung.done',null); closeOverlay(); sceneStart(); });
+  $('#closeBtn').onclick=closeOverlay;
+}
+
+/* ---------- 이벤트 ---------- */
+stage.addEventListener('click',e=>{
+  const s=e.target.closest('.slot'); if(!s) return;
+  if(st.scene==='mood') pickMood(s); else if(st.scene==='number') pickNumber(s);
+});
+$('#restBtn').onclick=openRest;
+$('#helpBtn').onclick=openHelp;
+$('#replay').onclick=()=>playIds(lastIds);
+bindHold($('#parentBtn'),openParent);
+document.addEventListener('contextmenu',e=>{ if(!(e.target.tagName==='INPUT')) e.preventDefault(); });
+(function(){ const s=$('#segs'); for(let i=0;i<CONFIG.fuelSteps;i++) s.appendChild(document.createElement('i')); $('#miniCar').innerHTML=friendCar(); })();
+openDB().then(d=>{ db=d; return dbLoadAll(); }).then(()=>{}, ()=>{});
+sceneStart();
+</script>
+</body>
+</html>
